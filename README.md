@@ -1,7 +1,7 @@
 # ENTREGABLES: SISTEMA DE SOPORTE TÉCNICO AUTOMATIZADO CON IA
 
 **Proyecto:** Automatización de soporte técnico con N8N, Notion y Cohere  
-**Responsable:** Vicky Caparroz  
+**Responsable:** Victoria Caparroz  
 **Fecha:** Septiembre 2026  
 **Versión:** 1.0
 
@@ -337,31 +337,6 @@ Este paquete contiene **5 documentos profesionales** que describen la arquitectu
 
 ---
 
-## 📞 CONTACTO Y SOPORTE
 
-**Responsable del sistema:** Vicky Caparroz  
-**Email:** vicky.caparroz@gmail.com  
-**LinkedIn:** [link]
-
-Para preguntas sobre:
-- **Arquitectura:** Tech Lead
-- **Datos:** DBA / Notion expert
-- **Costos:** CFO
-- **Seguridad:** CISO
-- **Operación:** Project Manager
-
----
-
-## 📜 CONTROL DE VERSIONES
-
-| Versión | Fecha | Cambios |
-|---------|-------|---------|
-| 1.0 | Sept 2026 | Documento inicial |
-
----
-
-**Nota de confidencialidad:** Estos documentos contienen información técnica y financiera sensible. Distribuir solo a stakeholders autorizados.
-
----
 
 **Última actualización:** Septiembre 6, 2026
