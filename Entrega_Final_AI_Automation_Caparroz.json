@@ -1,0 +1,568 @@
+{
+  "name": "Enviar Mail al Usuario y Finalizar Ticket",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1w3F6ozA4r0EW5m7gDf8EyBC_RP4NqsbwHAndsHs7Lac",
+          "mode": "list",
+          "cachedResultName": "Tickets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1w3F6ozA4r0EW5m7gDf8EyBC_RP4NqsbwHAndsHs7Lac/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 799147806,
+          "mode": "list",
+          "cachedResultName": "Respuestas de formulario 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1w3F6ozA4r0EW5m7gDf8EyBC_RP4NqsbwHAndsHs7Lac/edit#gid=799147806"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        112
+      ],
+      "id": "95c979bc-a447-402f-80ee-0178c13ef9dc",
+      "name": "Google Sheets Trigger",
+      "executeOnce": false,
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "mABjm4bAFt7b0nCn",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "3cba62df-afbf-80c2-bf10-eea3daf9d00e",
+          "mode": "list",
+          "cachedResultName": "TICKETS",
+          "cachedResultUrl": "https://app.notion.com/p/3cba62dfafbf80c2bf10eea3daf9d00e"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Nombre empleado|title",
+              "title": "={{ $json['Nombre empleado'] }}"
+            },
+            {
+              "key": "Sector dentro de la compañía|rich_text",
+              "textContent": "={{ $json['Sector dentro de la compañía'] }}"
+            },
+            {
+              "key": "Descripción del problema|rich_text",
+              "textContent": "={{ $json['Descripción del problema'] }}"
+            },
+            {
+              "key": "¿Podés seguir trabajando?|rich_text",
+              "textContent": "={{ $json['¿Podés seguir trabajando?'] }}"
+            },
+            {
+              "key": "Email de contacto|email",
+              "emailValue": "={{ $json['Email de contacto'] }}"
+            },
+            {
+              "key": "Estado|status",
+              "statusValue": "Pendiente"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -1088,
+        112
+      ],
+      "id": "555ff138-f217-4a18-b835-8037bc08cc6c",
+      "name": "Crear Ticket en Notion",
+      "credentials": {
+        "notionApi": {
+          "id": "jtX4Jy4Eg5E5JVue",
+          "name": "Notion account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "20454afa-119c-43c0-a911-4d9d5a7d3673",
+          "mode": "list",
+          "cachedResultName": "Base de Conocimiento (Triagge)"
+        },
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Activo|checkbox",
+              "condition": "equals",
+              "checkboxValue": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -880,
+        96
+      ],
+      "id": "a83247d4-a8d8-4854-9816-f73451de4ce6",
+      "name": "Obtener Base Conocimiento",
+      "executeOnce": true,
+      "credentials": {
+        "notionApi": {
+          "id": "jtX4Jy4Eg5E5JVue",
+          "name": "Notion account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=={{ `ROL Y OBJETIVO:\nSos un agente de soporte técnico IT. Tu tarea es analizar el ticket de soporte, determinar la categoría y prioridad, y redactar una solución guiada, empática y profesional para el empleado.\n\nDATOS DEL TICKET:\n- Nombre del empleado: ${$('Crear Ticket en Notion').item.json.name || ''}\n- Email: ${$('Crear Ticket en Notion').item.json['Email de contacto'] || ''}\n- Sector: ${$('Crear Ticket en Notion').item.json['Sector dentro de la empresa'] || ''}\n- Descripción del problema: ${$('Crear Ticket en Notion').item.json['Descripción del problema'] || $('Crear Ticket en Notion').item.json.property_descripci_n_del_problema || ''}\n- ¿Puede seguir trabajando?: ${$('Crear Ticket en Notion').item.json['¿Podés seguir trabajando?'] || $('Crear Ticket en Notion').item.json.property_pod_s_seguir_trabajando || ''}\n\nARTÍCULOS DE LA BASE DE CONOCIMIENTO DISPONIBLES:\n${$input.all().map(item => `\n- ID: ${item.json.property_id || item.json.id}\n- Artículo: ${item.json.name || item.json.property_articulo}\n- Categoría: ${item.json.property_categoria}\n- Prioridad Sugerida: ${item.json.property_prioridad_sugerida}\n- Problema: ${item.json.property_problema}\n- Solución / Pasos: ${item.json.property_soluci_n}\n`).join('\\n---\\n')}\n\nINSTRUCCIONES DE FORMATO Y REDACCIÓN:\n\n1. DETERMINAR CAMPOS DE NOTION:\n   - \"categoria\": Selecciona la categoría adecuada según el problema (ejemplo: Acceso, Hardware, Software, Red/Conectividad, Otro).\n   - \"prioridad\": Selecciona el nivel adecuado (ejemplo: Urgente, Alta, Media, Baja).\n\n2. REDACTAR LA \"respuesta_sugerida\":\n   Aplica de forma estricta la siguiente estructura y plantilla de redacción, adaptando dinámicamente el nombre del usuario (extraído de los datos del ticket) y los pasos específicos provistos por la Base de Conocimiento:\n\n   \"Hola [Nombre del empleado], lamento que estés teniendo problemas para acceder a tu computadora. Te guiaré a través de los pasos para restablecer tu contraseña y recuperar el acceso. Por favor, sigue estos pasos:\n\n   1. Confirma tu identidad según el procedimiento interno. Esto es importante para garantizar la seguridad de tus datos.\n   2. Accede al mecanismo corporativo de restablecimiento de contraseña. Te ayudaré a localizarlo y guiarte a través del proceso.\n   3. Generaremos una nueva contraseña siguiendo las políticas de seguridad de la empresa. Es importante que elijas una contraseña fuerte y segura.\n   4. Verificaremos que la nueva contraseña se haya establecido correctamente y que puedas acceder a tu cuenta.\n   5. Intenta iniciar sesión nuevamente con la nueva contraseña. Si todo va bien, deberías poder acceder sin problemas.\n   6. En caso de que el acceso siga fallando, verificaremos si tu cuenta está bloqueada o si hay algún problema con tus permisos de acceso.\n   7. Si el problema persiste, escalaremos el caso al equipo de IT para una asistencia más avanzada.\n\n   Recuerda que la seguridad de tus datos es nuestra prioridad. Si tienes alguna duda o necesitas más asistencia, no dudes en contactarme. Estoy aquí para ayudarte a resolver este problema lo antes posible.\"\n{\n  \"categoria\": \"Acceso\",\n  \"prioridad\": \"Media\",\n  \"respuesta_sugerida\": \n}` }}\nFORMATO OBLIGATORIO DE SALIDA DEL MENSAJE:\nResponde ÚNICAMENTE con un JSON válido, sin bloques de código markdown ni texto adicional:\n\n\"Hola Lucas, lamento que estés teniendo problemas para acceder a tu computadora...\"\n",
+        "options": {
+          "batching": {
+            "batchSize": 1
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -656,
+        64
+      ],
+      "id": "d65445ca-6c34-45a0-818b-1edafd3a2093",
+      "name": "Agente IA (RAG Support)",
+      "executeOnce": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "command-r-08-2024",
+        "options": {
+          "temperature": 0,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatCohere",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        288
+      ],
+      "id": "8830584d-4fd0-4e34-a5ea-8278c8e610a9",
+      "name": "Modelo Cohere Chat",
+      "credentials": {
+        "cohereApi": {
+          "id": "qLza8t4QZ8wKs9w8",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Obtener el string enviado por el agente\nconst rawOutput = $json.output || \"\";\n\ntry {\n  // Limpiar marcas de bloques de código markdown si existieran\n  let cleanText = rawOutput.replace(/```json/gi, '').replace(/```/g, '').trim();\n\n  // Extraer el contenido encerrado en llaves {}\n  const jsonMatch = cleanText.match(/\\{[\\s\\S]*\\}/);\n  if (!jsonMatch) {\n    throw new Error(\"No se encontró estructura JSON.\");\n  }\n\n  let jsonString = jsonMatch[0];\n\n  // Reparar errores comunes de sintaxis generados por LLMs (como falta de comas entre clave-valor)\n  jsonString = jsonString.replace(/(\":\\s*\"[^\"]*\")\\s*\\n?\\s*(\")/g, '$1,\\n$2');\n\n  // Parsear el objeto JSON corregido\n  const parsed = JSON.parse(jsonString);\n\n  return {\n    prioridad: parsed.prioridad || \"Media\",\n    categoria: parsed.categoria || \"Acceso\",\n    respuesta_sugerida: parsed.respuesta_sugerida || rawOutput\n  };\n\n} catch (e) {\n  // En caso de fallo irrecuperable, entrega una estructura segura sin detener el flujo\n  return {\n    prioridad: \"Media\",\n    categoria: \"Acceso\",\n    respuesta_sugerida: rawOutput,\n    error_parseo: e.message\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        48
+      ],
+      "id": "e11813ec-647b-4195-a53e-6ca7b7e6ed0f",
+      "name": "Parsear Respuesta IA"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Crear Ticket en Notion').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Respuesta sugerida IA|rich_text",
+              "textContent": "={{ $json.respuesta_sugerida }}"
+            },
+            {
+              "key": "Prioridad del ticket |multi_select",
+              "multiSelectValue": "={{ $json.prioridad }}"
+            },
+            {
+              "key": "Categoría|multi_select",
+              "multiSelectValue": "={{ $json.categoria }}"
+            },
+            {
+              "key": "Estado|status",
+              "statusValue": "Procesado por IA"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        48
+      ],
+      "id": "379a017f-e1a2-4be8-8404-8cdb0ff80efb",
+      "name": "Actualizar a En Revision",
+      "credentials": {
+        "notionApi": {
+          "id": "jtX4Jy4Eg5E5JVue",
+          "name": "Notion account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "=mavictoria.caparroz@bue.edu.ar",
+        "subject": "Aviso HITL: Nuevo Ticket en Revisión",
+        "message": "=={{ `Se ha procesado un nuevo ticket para ${$json.name}.\\n\\nPrioridad: ${$('Parsear Respuesta IA').item.json.prioridad}\\nCategoría: ${$('Parsear Respuesta IA').item.json.categoria}\\n\\nIngresá a Notion para validar la propuesta y cambiar el estado a 'Aprobado por humano'.` }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        32
+      ],
+      "id": "ae0f1f07-9b76-4c4a-b2ff-92057b7d8922",
+      "name": "Notificar Humano (HITL)",
+      "webhookId": "fff022e8-3d9f-4eb6-8e79-a4c80f14633c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5lonK7LhljYfhotD",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "=3cba62dfafbf80c2bf10eea3daf9d00e?v=3cba62dfafbf808eb2ba000cb373b326",
+          "mode": "url"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -336,
+        240
+      ],
+      "id": "17448aca-188c-4975-a474-4e340daf3a03",
+      "name": "Registrar Error en Notion",
+      "credentials": {
+        "notionApi": {
+          "id": "jtX4Jy4Eg5E5JVue",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "event": "pagedUpdatedInDatabase",
+        "databaseId": {
+          "__rl": true,
+          "value": "3cba62df-afbf-80c2-bf10-eea3daf9d00e",
+          "mode": "list"
+        }
+      },
+      "type": "n8n-nodes-base.notionTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        464
+      ],
+      "id": "60ea6578-ae60-4ce2-bf16-423048400076",
+      "name": "Notion Trigger (Cambio en DB)",
+      "retryOnFail": true,
+      "credentials": {
+        "notionApi": {
+          "id": "jtX4Jy4Eg5E5JVue",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "filter_estado",
+              "leftValue": "={{ $json.Estado }}",
+              "rightValue": "Aprobado por humano",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -1168,
+        464
+      ],
+      "id": "d7a12b0b-2aa8-45e6-a46d-c9ba85e7c4fb",
+      "name": "Validar Estado Aprobado",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email de contacto'] }}",
+        "subject": "=Respuesta a su ticket de soporte: {{ $json.property_categor_a || 'General' }}",
+        "message": "=={{ `Hola ${$json['Nombre empleado'] || 'usuario'},\\n\\nTe compartimos la solución propuesta para tu requerimiento:\\n\\n${$json['Respuesta sugerida IA'] || ''}\\n\\nSaludos,\\nEquipo de Soporte IT` }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -944,
+        464
+      ],
+      "id": "72d7edf6-7253-46d9-9f66-a45762d77576",
+      "name": "Enviar Mail a Usuario",
+      "webhookId": "c641ec6d-b11c-434a-ac24-b0760141df34",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5lonK7LhljYfhotD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Notion Trigger (Cambio en DB)').item.json.id }}",
+          "__regex": "^([0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12})"
+        },
+        "simple": false,
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Estado|status",
+              "statusValue": "Listo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -720,
+        464
+      ],
+      "id": "72a6ed32-d1c4-4d00-84b7-209888a9ef71",
+      "name": "Cambiar Estado a Listo",
+      "credentials": {
+        "notionApi": {
+          "id": "jtX4Jy4Eg5E5JVue",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Crear Ticket en Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Ticket en Notion": {
+      "main": [
+        [
+          {
+            "node": "Obtener Base Conocimiento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Obtener Base Conocimiento": {
+      "main": [
+        [
+          {
+            "node": "Agente IA (RAG Support)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Modelo Cohere Chat": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente IA (RAG Support)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente IA (RAG Support)": {
+      "main": [
+        [
+          {
+            "node": "Parsear Respuesta IA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar Error en Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Respuesta IA": {
+      "main": [
+        [
+          {
+            "node": "Actualizar a En Revision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar a En Revision": {
+      "main": [
+        [
+          {
+            "node": "Notificar Humano (HITL)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Notion Trigger (Cambio en DB)": {
+      "main": [
+        [
+          {
+            "node": "Validar Estado Aprobado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Estado Aprobado": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mail a Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mail a Usuario": {
+      "main": [
+        [
+          {
+            "node": "Cambiar Estado a Listo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notificar Humano (HITL)": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "477f5488-6eee-437b-b095-c14ffe4fc845",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ffd1988e5a5a9415d5c5e59cfcd663fc7e77187d3374ade94c47521570f5d72d"
+  },
+  "nodeGroups": [],
+  "id": "uTRBqyKH7vFukuPC",
+  "tags": []
+}
